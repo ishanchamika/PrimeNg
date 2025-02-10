@@ -112,6 +112,8 @@ export class Login
                     else
                     {
                         console.log("Login successful", response);
+
+                        localStorage.setItem('authToken', response.token);
                         this.router.navigate(['/dashboard']);
                     }
                 } 
