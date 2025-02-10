@@ -13,8 +13,7 @@ export const appRoutes: Routes = [
     { path: 'notfound', component: Notfound },
     { path: 'auth', loadChildren: () => import('./app/pages/auth/auth.routes') },
     {
-        path: 'dashboard',
-        component: AppLayout,
+        path: 'dashboard', component: AppLayout,
         children: [
             { path: '', component: Dashboard },
             { path: 'uikit', loadChildren: () => import('./app/pages/uikit/uikit.routes') },
