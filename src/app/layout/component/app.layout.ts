@@ -6,6 +6,8 @@ import { AppTopbar } from './app.topbar';
 import { AppSidebar } from './app.sidebar';
 import { AppFooter } from './app.footer';
 import { LayoutService } from '../service/layout.service';
+import {jwtDecode} from "jwt-decode";
+
 
 @Component({
     selector: 'app-layout',
@@ -23,20 +25,36 @@ import { LayoutService } from '../service/layout.service';
         <div class="layout-mask animate-fadein"></div>
     </div> `
 })
-export class AppLayout {
-    overlayMenuOpenSubscription: Subscription;
 
+export class AppLayout
+{
+    overlayMenuOpenSubscription: Subscription;
     menuOutsideClickListener: any;
 
     @ViewChild(AppSidebar) appSidebar!: AppSidebar;
-
     @ViewChild(AppTopbar) appTopBar!: AppTopbar;
 
-    constructor(
-        public layoutService: LayoutService,
-        public renderer: Renderer2,
-        public router: Router
-    ) {
+    constructor(public layoutService: LayoutService, public renderer: Renderer2, public router: Router)
+    {
+        
+        const token = localStorage.getItem('authToken');
+        if(!token) 
+        {
+            this.router.navigate(['/auth/login']);
+        }
+        else
+        {
+            try{
+                const decoded: any = jwtDecode(token);
+                console.log("UserId:", decoded.UserId);
+                console.log("Email:", decoded.Email);
+            }
+            catch(error)
+            {
+                console.error("Invalid token:", error);
+                // this.router.navigate(['/auth/login']);
+            }
+        }
         this.overlayMenuOpenSubscription = this.layoutService.overlayOpen$.subscribe(() => {
             if (!this.menuOutsideClickListener) {
                 this.menuOutsideClickListener = this.renderer.listen('document', 'click', (event) => {
