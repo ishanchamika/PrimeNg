@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SpeedDial } from 'primeng/speeddial';
 import { ToastModule } from 'primeng/toast';
+import { AttendanceService } from '../../service/myServices/attendance.services';
 
 @Component({
     standalone: true,
@@ -57,19 +58,21 @@ import { ToastModule } from 'primeng/toast';
                         <div class="flex justify-between mb-4">
                             <div>
                                 <span class="block text-muted-color font-medium mb-4">Attendance</span>
-                                <div class="text-surface-900 dark:text-surface-0 font-medium text-xl">28441</div>
+                                <div class="text-surface-900 dark:text-surface-0 font-medium text-xl">18</div>
                             </div>
                             <div class="flex items-center justify-center bg-cyan-100 dark:bg-cyan-400/10 rounded-border" style="width: 2.5rem; height: 2.5rem">
                                 <i class="pi pi-users text-cyan-500 !text-xl"></i>
                             </div>
                         </div>
                         <span class="text-primary font-medium">520 </span>
-                        <span class="text-muted-color">newly registered</span>
+                        <span class="text-muted-color">In this month</span>
                     </div>
                 </div>
                 `
 })
 export class StatsWidget 
 {
-    
+    constructor(private attendanceService: AttendanceService){}
+
+    getAttendanceData(){}
 }
