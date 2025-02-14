@@ -21,6 +21,8 @@ import { ButtonModule } from 'primeng/button';
 import { ButtonGroupModule } from 'primeng/buttongroup';
 import { SplitButtonModule } from 'primeng/splitbutton';
 
+import { TaskService } from '../../service/myServices/tasks.services';
+
 
 
 
@@ -41,6 +43,7 @@ import { SplitButtonModule } from 'primeng/splitbutton';
                         </div>
                         <span class="text-primary font-medium">24 new </span>
                         <span class="text-muted-color">since last visit</span>
+                        <!-- <p-button label="View" rounded /> -->
                     </div>
                 </div>
                 <div class="col-span-12 lg:col-span-6 xl:col-span-3">
@@ -142,7 +145,7 @@ export class StatsWidget implements OnInit
         taskDeadline: ''
     };
 
-    constructor(private attendanceService: AttendanceService, private router: Router)
+    constructor(private attendanceService: AttendanceService, private router: Router, private taskService: TaskService)
     {
         const token = localStorage.getItem('authToken');
         if(!token) 
@@ -183,25 +186,41 @@ export class StatsWidget implements OnInit
         this.displayTaskDialog = true;
     }
 
-    saveTask() 
+    saveTask()
     {
+        const token = localStorage.getItem('authToken');
+        if(!token) return new Observable();
+        const decoded: any = jwtDecode(token);
+
         if(this.newTask.taskName.trim() === '' || this.newTask.taskDescription.trim() === '' || this.newTask.taskDeadline === '') 
         {
             alert("All field are required");
             return;
         }
+        const confirmSave = confirm("Are you sure you want to add this task?");
+        if (!confirmSave) return;
+        this.taskService.addTask(decoded.UserId, this.newTask.taskName, this.newTask.taskDescription, this.newTask.taskStatus, this.newTask.taskDeadline)
+        .subscribe((response) => 
+            {
+                alert('Successfully added task');
+                console.log('New Task Added:', response);
+                this.displayTaskDialog = false;
+                // Reset form
+                this.newTask = {
+                    taskName: '',
+                    taskDescription: '',
+                    taskStatus: 'Pending',
+                    taskDeadline: ''
+                };
+            },
+            (error) => 
+            {
+                console.error('Error adding task:', error);
+                alert('Failed to add task');
+            }
+        );
 
-        alert("Successfully saved new task");
-        console.log("New Task Added:", this.newTask);
-        this.displayTaskDialog = false;
-
-        // Reset form
-        this.newTask = {
-            taskName: '',
-            taskDescription: '',
-            taskStatus: 'Pending',
-            taskDeadline: ''
-        };
+        return;
     }
 
     ngOnDestroy()
@@ -211,6 +230,7 @@ export class StatsWidget implements OnInit
             this.attendanceSubscription.unsubscribe(); // Prevent memory leaks
         }
     }
+
     getAttendanceData(): Observable<any> 
     {
         const token = localStorage.getItem('authToken');
