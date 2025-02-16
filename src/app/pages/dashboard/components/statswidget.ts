@@ -199,7 +199,10 @@ export class StatsWidget implements OnInit
         }
         const confirmSave = confirm("Are you sure you want to add this task?");
         if (!confirmSave) return;
-        this.taskService.addTask(decoded.UserId, this.newTask.taskName, this.newTask.taskDescription, this.newTask.taskStatus, this.newTask.taskDeadline)
+
+        const dateOnly = new Date(this.newTask.taskDeadline).toISOString().split("T")[0];
+
+        this.taskService.addTask(decoded.UserId, this.newTask.taskName, this.newTask.taskDescription, this.newTask.taskStatus, dateOnly)
         .subscribe((response) => 
             {
                 alert('Successfully added task');
