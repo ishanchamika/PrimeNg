@@ -20,4 +20,12 @@ export class TaskService
     {
         return this.http.get(`${this.apiUrl}/Task/${userId}`);
     }
+    updatePendingToStarted(taskId: number): Observable<any>
+    {
+        return this.http.put(`${this.apiUrl}/Task/StartTask/${taskId}`, {});
+    }
+    updateStartedToComplete(taskId: number): Observable<any>
+    {
+        return this.http.put(`${this.apiUrl}/Task/CompleteTask/${taskId}`, {});
+    }
 }
