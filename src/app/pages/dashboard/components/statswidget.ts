@@ -24,7 +24,13 @@ import { SplitButtonModule } from 'primeng/splitbutton';
 import { TaskService } from '../../service/myServices/tasks.services';
 
 
-
+interface Task {
+    id: number;
+    taskName: string;
+    taskDescription: string;
+    taskStatus: 'Pending' | 'In Progress' | 'Completed';
+    taskDeadline: string;
+}
 
 @Component({
     standalone: true,
@@ -34,15 +40,15 @@ import { TaskService } from '../../service/myServices/tasks.services';
                     <div class="card mb-0">
                         <div class="flex justify-between mb-4">
                             <div>
-                                <span class="block text-muted-color font-medium mb-4">Add Task</span>
-                                <div class="text-surface-900 dark:text-surface-0 font-medium text-xl">152</div>
+                                <span class="block text-muted-color font-medium mb-4"><h6>Add Task</h6></span>
+                                <div class="text-surface-900 dark:text-surface-0 font-medium text-xl">{{lenTasks}}</div>
                             </div>
                             <div class="flex items-center justify-center bg-blue-100 dark:bg-blue-400/10 rounded-border" style="width: 2.5rem; height: 2.5rem" (click)="showAddTaskDialog()">
                             <i class="pi pi-plus text-blue-500 !text-xl"></i>
                             </div>
                         </div>
-                        <span class="text-primary font-medium">24 new </span>
-                        <span class="text-muted-color">since last visit</span>
+                        <span class="text-primary font-medium">{{todayTasks}} </span>
+                        <span class="text-muted-color">tasks should be completed today</span>
                         <!-- <p-button label="View" rounded /> -->
                     </div>
                 </div>
@@ -50,44 +56,44 @@ import { TaskService } from '../../service/myServices/tasks.services';
                     <div class="card mb-0">
                         <div class="flex justify-between mb-4">
                             <div>
-                                <span class="block text-muted-color font-medium mb-4">Started Tasks</span>
-                                <div class="text-surface-900 dark:text-surface-0 font-medium text-xl">$2.100</div>
+                                <span class="block text-muted-color font-medium mb-4"><h6>Started Tasks</h6></span>
+                                <div class="text-surface-900 dark:text-surface-0 font-medium text-xl">{{lenTasksDoing}}</div>
                             </div>
                             <div class="flex items-center justify-center bg-orange-100 dark:bg-orange-400/10 rounded-border" style="width: 2.5rem; height: 2.5rem">
                                 <i class="pi pi-pause text-orange-500 !text-xl"></i>
                             </div>
                         </div>
-                        <span class="text-primary font-medium">%52+ </span>
-                        <span class="text-muted-color">since last week</span>
+                        <span class="text-primary font-medium">{{todayTasksDoing}} </span>
+                        <span class="text-muted-color">tasks should be completed today</span>
                     </div>
                 </div>
                 <div class="col-span-12 lg:col-span-6 xl:col-span-3">
                     <div class="card mb-0">
                         <div class="flex justify-between mb-4">
                             <div>
-                                <span class="block text-muted-color font-medium mb-4">Completed Tasks</span>
-                                <div class="text-surface-900 dark:text-surface-0 font-medium text-xl">152 Unread</div>
+                                <span class="block text-muted-color font-medium mb-4"><h6>Completed Tasks</h6></span>
+                                <div class="text-surface-900 dark:text-surface-0 font-medium text-xl">{{lenTasksDone}}</div>
                             </div>
                             <div class="flex items-center justify-center bg-purple-100 dark:bg-purple-400/10 rounded-border" style="width: 2.5rem; height: 2.5rem">
                                 <i class="pi pi-check text-purple-500 !text-xl"></i>
                             </div>
                         </div>
-                        <span class="text-primary font-medium">85 </span>
-                        <span class="text-muted-color">responded</span>
+                        <span class="text-primary font-medium">{{todayTasksDone}} </span>
+                        <span class="text-muted-color">tasks you have done</span>
                     </div>
                 </div>
                 <div class="col-span-12 lg:col-span-6 xl:col-span-3">
-                    <div class="card mb-0">
+                    <div class="card mb-0" style="background-color: #ffffff;">
                         <div class="flex justify-between mb-4">
                             <div>
-                                <span class="block text-muted-color font-medium mb-4">Attendance</span>
-                                <div class="text-surface-900 dark:text-surface-0 font-medium text-xl">{{ attendanceCount }}</div>
+                                <span class="block text-muted-color font-medium mb-4"><h4>Attendance</h4></span>
+                                <div class="text-surface-1000 dark:text-surface-0 font-bold text-xl">{{ attendanceCount }}</div>
                             </div>
                             <div class="flex items-center justify-center bg-cyan-100 dark:bg-cyan-400/10 rounded-border" style="width: 2.5rem; height: 2.5rem">
                                 <i class="pi pi-users text-cyan-500 !text-xl"></i>
                             </div>
                         </div>
-                        <span class="text-primary font-medium">{{ attendanceCount }} </span>
+                        <!-- <span class="text-primary font-medium">{{ attendanceCount }} </span> -->
                         <span class="text-muted-color">In this month</span>
                     </div>
                 </div> 
@@ -137,7 +143,22 @@ export class StatsWidget implements OnInit
     attendanceCount: number = 0;
     totalTasks: number = 152;
     displayTaskDialog: boolean = false;
+
+    getAllTasks$!: Observable<any>;
+    taskSubscription$!: Subscription;
     
+    tasks: Task[] = [];
+    tasksDoing: Task[] = [];
+    tasksDone: Task[] = [];
+
+    lenTasks: number = 0;
+    lenTasksDoing: number = 0;
+    lenTasksDone: number = 0;
+
+    todayTasks: number = 0;
+    todayTasksDoing: number = 0;
+    todayTasksDone: number = 0;
+
     newTask = {
         taskName: '',
         taskDescription: '',
@@ -167,6 +188,7 @@ export class StatsWidget implements OnInit
 
     ngOnInit() 
     {
+        this.getAllTasks();
         this.attendanceData$ = this.getAttendanceData();
         this.attendanceSubscription = this.attendanceData$.subscribe(data => 
         {
@@ -245,5 +267,51 @@ export class StatsWidget implements OnInit
         const date = today.toISOString().split('T')[0]; // Format as YYYY-MM-DD
 
         return this.attendanceService.getAttendanceByDateAndUserId(decoded.UserId, date);
+    }
+
+    getAllTasks()
+    {
+        const token = localStorage.getItem('authToken');
+        if(!token) return;
+
+        try
+        {
+            const decoded: { UserId: string } = jwtDecode(token);
+            this.getAllTasks$ = this.taskService.getTaskByUserId(decoded.UserId);
+            this.getAllTasks$.subscribe(
+                (data)=>
+                {
+                    if(data.status && Array.isArray(data.tasks)) 
+                    {
+                        this.tasks = data.tasks.filter((task: Task) => task.taskStatus === 'Pending');
+                        this.tasksDoing = data.tasks.filter((task: Task) => task.taskStatus === 'In Progress');
+                        this.tasksDone = data.tasks.filter((task: Task) => task.taskStatus === 'Completed');
+
+                        this.lenTasks = this.tasks.length;
+                        this.lenTasksDoing = this.tasksDoing.length;
+                        this.lenTasksDone = this.tasksDone.length;
+
+                        const today = new Date();
+                        today.setMinutes(today.getMinutes() + today.getTimezoneOffset() + 330);
+                        const date = today.toISOString().split('T')[0];
+
+                        this.todayTasks = data.tasks.filter((task: Task) => task.taskStatus === 'Pending' && task.taskDeadline === date).length;
+                        this.todayTasksDoing = data.tasks.filter((task: Task) => task.taskStatus === 'In Progress' && task.taskDeadline === date).length;
+                        this.todayTasksDone = data.tasks.filter((task: Task) => task.taskStatus === 'Completed' && task.taskDeadline === date).length;
+                    } 
+                    else 
+                    {
+                        console.error('Unexpected response format:', data);
+                    }
+                },
+                (error) => 
+                {
+                    console.error('Error fetching tasks:', error);
+                });
+        }
+        catch(error)
+        {
+            console.error('Invalid token format:', error);
+        }
     }
 }
