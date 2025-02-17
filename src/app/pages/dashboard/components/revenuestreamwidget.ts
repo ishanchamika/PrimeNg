@@ -1,7 +1,18 @@
 import { Component } from '@angular/core';
 import { ChartModule } from 'primeng/chart';
-import { debounceTime, Subscription } from 'rxjs';
+import { debounceTime, Observable, Subscription } from 'rxjs';
 import { LayoutService } from '../../../layout/service/layout.service';
+import { TaskService } from '../../service/myServices/tasks.services';
+import { jwtDecode } from 'jwt-decode';
+
+
+interface Task {
+    id: number;
+    taskName: string;
+    taskDescription: string;
+    taskStatus: 'Pending' | 'In Progress' | 'Completed';
+    taskDeadline: string;
+}
 
 @Component({
     standalone: true,
@@ -12,70 +23,103 @@ import { LayoutService } from '../../../layout/service/layout.service';
         <p-chart type="bar" [data]="chartData" [options]="chartOptions" class="h-80" />
     </div>`
 })
-export class RevenueStreamWidget {
+export class RevenueStreamWidget 
+{
     chartData: any;
-
     chartOptions: any;
-
     subscription!: Subscription;
 
-    constructor(public layoutService: LayoutService) {
-        this.subscription = this.layoutService.configUpdate$.pipe(debounceTime(25)).subscribe(() => {
+    taskSubscription$!: Subscription;
+    getAllTasks$!: Observable<any>;
+    tasks: Task[] = [];
+    tasksDoing: Task[] = [];
+    tasksDone: Task[] = [];
+
+    lenTasks: number = 0;
+    lenTasksDoing: number = 0;
+    lenTasksDone: number = 0;
+    constructor(public layoutService: LayoutService, private taskService: TaskService) 
+    {
+        this.subscription = this.layoutService.configUpdate$.pipe(debounceTime(25)).subscribe(() => 
+        {
             this.initChart();
         });
     }
 
-    ngOnInit() {
-        this.initChart();
+    ngOnInit() 
+    {
+        this.getAllTasks();
     }
-
-    initChart() {
+    
+    getAllTasks() 
+    {
+        const token = localStorage.getItem('authToken');
+        if (!token) return;
+    
+        try 
+        {
+            const decoded: { UserId: string } = jwtDecode(token);
+            this.getAllTasks$ = this.taskService.getTaskByUserId(decoded.UserId);
+    
+            this.taskSubscription$ = this.getAllTasks$.subscribe(
+                (data) => 
+                {
+                    if (data.status && Array.isArray(data.tasks)) 
+                    {
+                        this.tasks = data.tasks.filter((task: Task) => task.taskStatus === 'Pending');
+                        this.tasksDoing = data.tasks.filter((task: Task) => task.taskStatus === 'In Progress');
+                        this.tasksDone = data.tasks.filter((task: Task) => task.taskStatus === 'Completed');
+    
+                        this.lenTasks = this.tasks.length;
+                        this.lenTasksDoing = this.tasksDoing.length;
+                        this.lenTasksDone = this.tasksDone.length;
+    
+                        this.initChart();
+                    } 
+                    else 
+                    {
+                        console.error('Unexpected response format:', data);
+                    }
+                },
+                (error) => 
+                {
+                    console.error('Error fetching tasks:', error);
+                }
+            );
+        } 
+        catch (error) 
+        {
+            console.error('Invalid token format:', error);
+        }
+    }
+    
+    // Modify initChart() to use task lengths
+    initChart() 
+    {
         const documentStyle = getComputedStyle(document.documentElement);
-        const textColor = documentStyle.getPropertyValue('--text-color');
-        const borderColor = documentStyle.getPropertyValue('--surface-border');
-        const textMutedColor = documentStyle.getPropertyValue('--text-color-secondary');
-
-        this.chartData = {
-            labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+    
+        this.chartData = 
+        {
+            labels: ['Pending', 'In Progress', 'Completed'],
             datasets: [
                 {
                     type: 'bar',
-                    label: 'Subscriptions',
+                    label: 'Tasks',
                     backgroundColor: documentStyle.getPropertyValue('--p-primary-400'),
-                    data: [4000, 10000, 15000, 4000],
-                    barThickness: 32
-                },
-                {
-                    type: 'bar',
-                    label: 'Advertising',
-                    backgroundColor: documentStyle.getPropertyValue('--p-primary-300'),
-                    data: [2100, 8400, 2400, 7500],
-                    barThickness: 32
-                },
-                {
-                    type: 'bar',
-                    label: 'Affiliate',
-                    backgroundColor: documentStyle.getPropertyValue('--p-primary-200'),
-                    data: [4100, 5200, 3400, 7400],
-                    borderRadius: {
-                        topLeft: 8,
-                        topRight: 8,
-                        bottomLeft: 0,
-                        bottomRight: 0
-                    },
-                    borderSkipped: false,
+                    data: [this.lenTasks, this.lenTasksDoing, this.lenTasksDone], // Use fetched task counts
                     barThickness: 32
                 }
             ]
         };
-
-        this.chartOptions = {
+    
+        this.chartOptions = 
+        {
             maintainAspectRatio: false,
             aspectRatio: 0.8,
             plugins: {
                 legend: {
                     labels: {
-                        color: textColor
+                        color: documentStyle.getPropertyValue('--text-color')
                     }
                 }
             },
@@ -83,7 +127,7 @@ export class RevenueStreamWidget {
                 x: {
                     stacked: true,
                     ticks: {
-                        color: textMutedColor
+                        color: documentStyle.getPropertyValue('--text-color-secondary')
                     },
                     grid: {
                         color: 'transparent',
@@ -93,10 +137,10 @@ export class RevenueStreamWidget {
                 y: {
                     stacked: true,
                     ticks: {
-                        color: textMutedColor
+                        color: documentStyle.getPropertyValue('--text-color-secondary')
                     },
                     grid: {
-                        color: borderColor,
+                        color: documentStyle.getPropertyValue('--surface-border'),
                         borderColor: 'transparent',
                         drawTicks: false
                     }
@@ -104,9 +148,11 @@ export class RevenueStreamWidget {
             }
         };
     }
-
-    ngOnDestroy() {
-        if (this.subscription) {
+    
+    ngOnDestroy() 
+    {
+        if(this.subscription) 
+        {
             this.subscription.unsubscribe();
         }
     }
