@@ -102,7 +102,7 @@ interface Task {
         <!-- Add Task Dialog -->
         <p-dialog [(visible)]="displayTaskDialog" [modal]="true" header="Add New Task" [style]="{ width: '50vw', height: '70vw' }">
             <p-fluid class="flex flex-col md:flex-row gap-8">
-                <div class="md:w-1/2">
+                <div class="md:w-full">
                         <div class="card flex flex-col gap-4">
                             <div class="font-semibold text-xl">Task Title</div>
                             <div class="flex flex-col md:flex-row gap-4">
