@@ -10,19 +10,35 @@ import { RatingModule } from 'primeng/rating';
 import { TagModule } from 'primeng/tag';
 import { Observable, Subscription } from 'rxjs';
 import { jwtDecode } from 'jwt-decode';
+import { DialogModule } from 'primeng/dialog';
+import { FluidModule } from 'primeng/fluid';
+import { DatePickerModule } from 'primeng/datepicker';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { FormsModule } from '@angular/forms';
+import { FloatLabelModule } from 'primeng/floatlabel';
+import { InputTextModule } from 'primeng/inputtext';
+import { InputGroupModule } from 'primeng/inputgroup';
+import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
+import { TextareaModule } from 'primeng/textarea';
+import { ButtonGroupModule } from 'primeng/buttongroup';
+import { SplitButtonModule } from 'primeng/splitbutton';
+
+
+
 
 interface Task {
     id: number;
     taskName: string;
     taskDescription: string;
-    taskStatus: 'Pending' | 'In Progress' | 'Completed';
+    taskStatus: string;
     taskDeadline: string;
 }
 
 @Component({
     standalone: true,
     selector: 'app-recent-sales-widget',
-    imports: [CommonModule, TableModule, ButtonModule, RippleModule, TabsModule, RatingModule, TagModule],
+    imports: [CommonModule,FloatLabelModule, InputTextModule,InputGroupModule,InputGroupAddonModule,TextareaModule,ButtonGroupModule,SplitButtonModule, TableModule,FormsModule, ButtonModule, RippleModule, TabsModule, InputIconModule, RatingModule, TagModule, DialogModule, FluidModule, DatePickerModule, IconFieldModule],
     template: `
     <div class="card !mb-8 w-[1000px] ml-[-17%]">
         <div class="font-semibold text-xl mb-4">Tasks Manager</div>
@@ -54,8 +70,8 @@ interface Task {
                                 <td>{{ task.taskDeadline }}</td>
                                 <td class="flex flex-wrap gap-2">
                                     <p-button label="Start" rounded (click)="updatePendingToStarted(task.id)" />
-                                    <p-button label="Edit" severity="info" rounded />
-                                    <p-button label="Delete" severity="warn" rounded />
+                                    <p-button label="Edit" severity="info" rounded (click)="showAddTaskDialog(task.id, task.taskName, task.taskDescription, task.taskStatus, task.taskDeadline)" />
+                                    <p-button label="Delete" severity="warn" rounded (click)="deleteTask(task.id)" />
                                 </td>
                             </tr>
                         </ng-template>
@@ -66,12 +82,12 @@ interface Task {
                     <p-table [value]="tasksDoing" dataKey="id" responsiveLayout="scroll">
                         <ng-template #header>
                             <tr>
-                                <th>Id</th>
-                                <th>Task Name</th>
-                                <th>Description</th>
-                                <th>Status</th>
-                                <th>Deadline</th>
-                                <th>Actions</th>
+                                <th style="width: 1rem">Id</th>
+                                <th pSortableColumn="taskName" style="width: 1rem">Task Name <p-sortIcon field="taskName"></p-sortIcon></th>
+                                <th pSortableColumn="taskDescription" style="width: 1rem">Description <p-sortIcon field="taskDescription"></p-sortIcon></th>
+                                <th pSortableColumn="taskStatus" style="width: 1rem">Status <p-sortIcon field="taskStatus"></p-sortIcon></th>
+                                <th pSortableColumn="taskDeadline" style="width: 1rem">Deadline <p-sortIcon field="taskDeadline"></p-sortIcon></th>
+                                <th style="width: 11rem">Actions</th>
                             </tr>
                         </ng-template>
                         <ng-template #body let-task>
@@ -83,24 +99,26 @@ interface Task {
                                 <td>{{ task.taskDeadline }}</td>
                                 <td class="flex flex-wrap gap-2">
                                     <p-button label="Complete" severity="success" rounded (click)="updateStartedToComplete(task.id)"/>
-                                    <p-button label="Edit" severity="info" rounded />
-                                    <p-button label="Delete" severity="warn" rounded />
+                                    <p-button label="Edit" severity="info" rounded  (click)="showAddTaskDialog(task.id, task.taskName, task.taskDescription, task.taskStatus, task.taskDeadline)"/>
+                                    <p-button label="Delete" severity="warn" rounded (click)="deleteTask(task.id)"/>
                                 </td>
                             </tr>
                         </ng-template>
                     </p-table>
                 </p-tabpanel>
 
+                <!-- task.id, task.taskName, task.taskDescription, task.taskStatus, task.taskDeadline -->
                 <!-- Completed Tasks -->
                 <p-tabpanel value="2">
                     <p-table [value]="tasksDone" dataKey="id" responsiveLayout="scroll">
                         <ng-template #header>
                             <tr>
-                                <th>Id</th>
-                                <th>Task Name</th>
-                                <th>Description</th>
-                                <th>Status</th>
-                                <th>Deadline</th>
+                                <th style="width: 1rem">Id</th>
+                                <th pSortableColumn="taskName" style="width: 1rem">Task Name <p-sortIcon field="taskName"></p-sortIcon></th>
+                                <th pSortableColumn="taskDescription" style="width: 1rem">Description <p-sortIcon field="taskDescription"></p-sortIcon></th>
+                                <th pSortableColumn="taskStatus" style="width: 1rem">Status <p-sortIcon field="taskStatus"></p-sortIcon></th>
+                                <th pSortableColumn="taskDeadline" style="width: 1rem">Deadline <p-sortIcon field="taskDeadline"></p-sortIcon></th>
+                                <!-- <th style="width: 11rem">Actions</th> -->
                             </tr>
                         </ng-template>
                         <ng-template #body let-task>
@@ -117,10 +135,50 @@ interface Task {
             </p-tabpanels>
         </p-tabs>
     </div>
+
+
+    <!-- popup form  -->
+    <p-dialog [(visible)]="displayTaskDialog" [modal]="true" header="Add New Task" [style]="{ width: '50vw', height: '70vw' }">
+            <p-fluid class="flex flex-col md:flex-row gap-8">
+                <div class="md:w-full">
+                        <div class="card flex flex-col gap-4">
+                            <input type="hidden" [(ngModel)]="newTask.id" />
+                            <div class="font-semibold text-xl">Task Title</div>
+                            <div class="flex flex-col md:flex-row gap-4">
+                                <input pInputText type="text" placeholder="Default" [(ngModel)]="newTask.taskName"/>
+                            </div>
+
+                            <div class="font-semibold text-xl">Task Description</div>
+                            <p-iconfield>
+                                <p-inputicon class="pi pi-user" />
+                                <input pInputText type="text" placeholder="description" [(ngModel)]="newTask.taskDescription"/>
+                            </p-iconfield>
+
+                            <div class="font-semibold text-xl">Task Status</div>
+                            <select id="taskStatus" class="p-inputtext p-component" [(ngModel)]="newTask.taskStatus">
+                                <option value="Pending">Pending</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Completed">Completed</option>
+                            </select>
+
+                            <div class="font-semibold text-xl">Task Deadline</div>
+                            <p-datepicker [(ngModel)]="newTask.taskDeadline" showIcon dateFormat="yy-mm-dd"></p-datepicker>
+                        </div>
+                </div>
+            </p-fluid>
+            <ng-template pTemplate="footer">
+                <p-button label="Save" severity="success" (click)="saveTask(newTask.id, newTask.taskName, newTask.taskDescription, newTask.taskStatus, newTask.taskDeadline)" ></p-button>
+                <p-button label="Cancel" severity="danger" (click)="displayTaskDialog = false" />
+            </ng-template>
+        </p-dialog>
     `,
     providers: [ProductService]
 })
 export class RecentSalesWidget implements OnInit, OnDestroy {
+    displayTaskDialog: boolean = false;
+    updateData: Task[] = [];
+    newTask: Task = { id: 0, taskName: '', taskDescription: '', taskStatus: 'Pending', taskDeadline: '' };
+
     taskSubscription$!: Subscription;
     getAllTasks$!: Observable<any>;
     products!: Product[];
@@ -240,5 +298,65 @@ export class RecentSalesWidget implements OnInit, OnDestroy {
             });
 
         this.getAllTasks();
+    }
+
+    saveTask(taskId: number, taskName: string, taskDescription: string, taskStatus: string, taskDeadline: string)
+    {
+        const token = localStorage.getItem('authToken');
+        if(!token) return;
+
+        const dateOnly = new Date(this.newTask.taskDeadline).toISOString().split("T")[0];
+        const decoded: any = jwtDecode(token);
+
+        this.taskService.updateTask(taskId, decoded.UserId, taskName, taskDescription, taskStatus, dateOnly).subscribe(
+            (data)=>
+            {
+                if(data.status === true)
+                {
+                    window.alert(data.message);
+                    this.displayTaskDialog = false;
+                }
+                else
+                {
+                    window.alert(data.message);
+                }
+            },
+            (error)=>
+            {
+                console.error('Error updating task', error);
+                window.alert('Internal Server Error, please try again');
+            });
+    }
+
+    deleteTask(taskId: number)
+    {
+        const updateConfirm = confirm("Are you sure complete the task?");
+        if(!updateConfirm) return;
+
+        this.taskService.deleteTask(taskId).subscribe(
+            (data) =>
+            {
+                if(data.stats === true)
+                {
+                    window.alert(data.message);
+                }
+                else
+                {
+                    window.alert(data.message);
+                }
+            },
+            (error) =>
+            {
+                console.log('server error', error);
+                window.alert('Internal Server error, please try again later');
+            }
+        )
+    }
+
+    showAddTaskDialog(id: number, taskName: string, taskDescription: string, taskStatus: string, taskDeadline: string) 
+    {
+        this.displayTaskDialog = true;
+        this.newTask = { id, taskName, taskDescription, taskStatus, taskDeadline };
+        console.log('aaaa', this.newTask);
     }
 }
