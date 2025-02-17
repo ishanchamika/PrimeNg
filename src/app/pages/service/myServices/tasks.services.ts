@@ -28,4 +28,13 @@ export class TaskService
     {
         return this.http.put(`${this.apiUrl}/Task/CompleteTask/${taskId}`, {});
     }
+    updateTask(taskId: number, userId: string, taskName: string, taskDescription: string, taskStatus: string, taskDeadline: string): Observable<any>
+    {
+        const taskData = { id: taskId, userId: userId, taskName: taskName, taskDescription: taskDescription, taskStatus: taskStatus, taskDeadline: taskDeadline };
+        return this.http.put(`${this.apiUrl}/Task/UpdateTask/${taskId}`, taskData );
+    }
+    deleteTask(taskId: number): Observable<any>
+    {
+        return this.http.delete(`${this.apiUrl}/Task/DeleteTask/${taskId}`);
+    }
 }
