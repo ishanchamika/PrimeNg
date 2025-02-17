@@ -24,8 +24,8 @@ interface Task {
     selector: 'app-recent-sales-widget',
     imports: [CommonModule, TableModule, ButtonModule, RippleModule, TabsModule, RatingModule, TagModule],
     template: `
-    <div class="card !mb-8 w-[1000px]">
-        <div class="font-semibold text-xl mb-4">Tasks Manage</div>
+    <div class="card !mb-8 w-[1000px] ml-[-17%]">
+        <div class="font-semibold text-xl mb-4">Tasks Manager</div>
         <p-tabs value="0">
             <p-tablist>
                 <p-tab value="0">Pending</p-tab>
@@ -131,9 +131,18 @@ export class RecentSalesWidget implements OnInit, OnDestroy {
     tasksDoing: Task[] = [];
     tasksDone: Task[] = [];
 
+    lenTasks: number = 0;
+    lenTasksDoing: number = 0;
+    lenTasksDone: number = 0;
+
     constructor(private productService: ProductService, private taskService: TaskService) {}
 
     ngOnInit() 
+    {
+        this.getAllTasks();
+    }
+
+    getAllTasks()
     {
         const token = localStorage.getItem('authToken');
         if(!token) return;
@@ -141,21 +150,21 @@ export class RecentSalesWidget implements OnInit, OnDestroy {
         try 
         {
             const decoded: { UserId: string } = jwtDecode(token);
-            this.productService.getProductsSmall().then((data) => (this.products = data));
+            // this.productService.getProductsSmall().then((data) => (this.products = data));
             this.getAllTasks$ = this.taskService.getTaskByUserId(decoded.UserId);
 
             this.taskSubscription$ = this.getAllTasks$.subscribe(
                 (data) => 
                 {
-                    if(data.status && Array.isArray(data.tasks)) 
+                    if(data.status && Array.isArray(data.tasks))
                     {
                         this.tasks = data.tasks.filter((task: Task) => task.taskStatus === 'Pending');
                         this.tasksDoing = data.tasks.filter((task: Task) => task.taskStatus === 'In Progress');
                         this.tasksDone = data.tasks.filter((task: Task) => task.taskStatus === 'Completed');
 
-                        console.log('Pending Tasks:', this.tasks);
-                        console.log('In Progress Tasks:', this.tasksDoing);
-                        console.log('Completed Tasks:', this.tasksDone);
+                        this.lenTasks = this.tasks.length;
+                        this.lenTasksDoing = this.tasksDoing.length;
+                        this.lenTasksDone = this.tasksDone.length;
                     } 
                     else 
                     {
@@ -173,7 +182,6 @@ export class RecentSalesWidget implements OnInit, OnDestroy {
             console.error('Invalid token format:', error);
         }
     }
-
     ngOnDestroy() 
     {
         if(this.taskSubscription$) 
@@ -205,6 +213,8 @@ export class RecentSalesWidget implements OnInit, OnDestroy {
             {
                 console.error('Error fetching tasks:', error);
             });
+
+        this.getAllTasks();
     }
 
     updateStartedToComplete(id: number)
@@ -228,5 +238,7 @@ export class RecentSalesWidget implements OnInit, OnDestroy {
             {
                 console.error('Error updating task', error);
             });
+
+        this.getAllTasks();
     }
 }
