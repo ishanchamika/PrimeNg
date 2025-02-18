@@ -79,7 +79,7 @@ interface Task {
                             </div>
                         </div>
                         <span class="text-primary font-medium">{{todayTasksDone}} </span>
-                        <span class="text-muted-color">tasks you have done</span>
+                        <span class="text-muted-color">tasks you have done today</span>
                     </div>
                 </div>
                 <div class="col-span-12 lg:col-span-6 xl:col-span-3">
