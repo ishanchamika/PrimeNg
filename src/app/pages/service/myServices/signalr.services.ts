@@ -18,24 +18,34 @@ export class SignalrService
         this.startConnection();
     }
 
-    private startConnection()
+    private startConnection() 
     {
         this.hubConnection = new signalR.HubConnectionBuilder()
-        .withUrl('https://localhost:7248/chat-hub')
-        .configureLogging(signalR.LogLevel.Information)
-        .withAutomaticReconnect()
-        .build();
-
-        this.hubConnection.start().catch(err => console.error(err));
-
-        this.hubConnection.on('ReceiveMessage', (message: string) =>
-        {
-            this.messageSubject.next([...this.messageSubject.value, message]);
+            .withUrl('http://localhost:7248/chat') // Add '/chat' to match the backend
+            .configureLogging(signalR.LogLevel.Information)
+            .withAutomaticReconnect()
+            .build();
+    
+        this.hubConnection.start()
+            .then(() => console.log('Connected to SignalR Hub'))
+            .catch(err => console.error('SignalR Connection Error:', err));
+    
+        this.hubConnection.on('ReceiveMessage', (username: string, message: string) => {
+            this.messageSubject.next([...this.messageSubject.value, `${username}: ${message}`]);
         });
     }
+    
 
-    sendMessage(message: String)
-    {
-        this.hubConnection.invoke('SendMessage', message).catch(err => console.error(err));
+    joinChatRoom(username: string, chatRoom: string) {
+        const user = { username, chatRoom };
+        this.hubConnection.invoke('JoinSpecificChatRoom', user)
+            .catch(err => console.error('Join Room Error:', err));
     }
+    
+
+    sendMessage(message: string, chatRoom: string) {
+        this.hubConnection.invoke('SendMessage', { message, chatRoom })
+            .catch(err => console.error('Send Message Error:', err));
+    }
+    
 }
