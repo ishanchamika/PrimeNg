@@ -21,7 +21,7 @@ export class SignalrService
     private startConnection() 
     {
         this.hubConnection = new signalR.HubConnectionBuilder()
-            .withUrl('http://localhost:7248/chat') // Add '/chat' to match the backend
+            .withUrl('http://localhost:7248/chat') 
             .configureLogging(signalR.LogLevel.Information)
             .withAutomaticReconnect()
             .build();
