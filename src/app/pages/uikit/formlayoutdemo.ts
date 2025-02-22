@@ -24,24 +24,26 @@ import { SignalrService } from '../service/myServices/signalr.services';
             </div>
 `
 })
-export class FormLayoutDemo 
-{
+export class FormLayoutDemo {
     message = '';
     messages: string[] = [];
+    username = 'User1'; // Replace with dynamic user input
+    chatRoom = 'General'; // Replace with dynamic chat room selection
 
-    constructor(private signalrService: SignalrService)
-    {
+    constructor(private signalrService: SignalrService) {
         this.signalrService.messages$.subscribe(msgs => {
             this.messages = msgs;
         });
+
+        // Join chat room when component initializes
+        this.signalrService.joinChatRoom(this.username, this.chatRoom);
     }
 
-    sendMessage()
-    {
-        if(this.message.trim())
-        {
-            this.signalrService.sendMessage(this.message);
+    sendMessage() {
+        if (this.message.trim()) {
+            this.signalrService.sendMessage(this.message, this.chatRoom);
             this.message = '';
         }
     }
 }
+
