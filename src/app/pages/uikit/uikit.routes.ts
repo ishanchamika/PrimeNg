@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 import { ButtonDemo } from './buttondemo';
 import { ChartDemo } from './chartdemo';
 import { FileDemo } from './filedemo';
-import { FormLayoutDemo } from './formlayoutdemo';
+import { ChatComponent } from './formlayoutdemo';
 import { InputDemo } from './inputdemo';
 import { ListDemo } from './listdemo';
 import { MediaDemo } from './mediademo';
@@ -19,7 +19,7 @@ export default [
     { path: 'button', data: { breadcrumb: 'Button' }, component: ButtonDemo },
     { path: 'charts', data: { breadcrumb: 'Charts' }, component: ChartDemo },
     { path: 'file', data: { breadcrumb: 'File' }, component: FileDemo },
-    { path: 'formlayout', data: { breadcrumb: 'Form Layout' }, component: FormLayoutDemo },
+    { path: 'formlayout', data: { breadcrumb: 'Form Layout' }, component: ChatComponent },
     { path: 'input', data: { breadcrumb: 'Input' }, component: InputDemo },
     { path: 'list', data: { breadcrumb: 'List' }, component: ListDemo },
     { path: 'media', data: { breadcrumb: 'Media' }, component: MediaDemo },
