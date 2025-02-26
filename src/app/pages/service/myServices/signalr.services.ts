@@ -1,44 +1,48 @@
 import { Injectable } from '@angular/core';
 import * as signalR from '@microsoft/signalr';
 import { BehaviorSubject } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root',
 })
-export class SignalrService {
+export class SignalrService 
+{
   private hubConnection!: signalR.HubConnection;
-  private messagesSubject = new BehaviorSubject<{ username: string; msg: string }[]>([]);
+  private messagesSubject = new BehaviorSubject<string[]>([]);
   messages$ = this.messagesSubject.asObservable();
+  private messages: string[] = [];
 
-  constructor() {}
+  constructor(private http: HttpClient) 
+  {
+    this.startConnection();
+  }
 
-  startConnection() {
+  private startConnection() 
+  {
     this.hubConnection = new signalR.HubConnectionBuilder()
       .withUrl('https://localhost:7248/Chat')
       .configureLogging(signalR.LogLevel.Information)
       .build();
 
-    this.hubConnection.on('ReceiveSpecificMessage', (username: string, msg: string) => {
-      const currentMessages = this.messagesSubject.getValue();
-      this.messagesSubject.next([...currentMessages, { username, msg }]);
-    });
-
-    this.hubConnection.start()
-      .then(() => console.log('Connected to SignalR server!'))
+    this.hubConnection
+      .start()
+      .then(() => console.log('Connected to SignalR'))
       .catch(err => console.error('Error connecting to SignalR:', err));
+
+    this.hubConnection.on('ReceiveSpecificMessage', (username: string, msg: string) => {
+      this.messages.push(`${username}: ${msg}`);
+      this.messagesSubject.next([...this.messages]);
+    });
   }
 
-  joinChatRoom(username: string, chatroom: string) {
-    if (this.hubConnection) {
-      this.hubConnection.invoke('JoinSpecificChatRoom', { username, chatroom })
-        .catch(err => console.error('Error joining chat room:', err));
-    }
+  joinChatRoom(username: string, chatRoom: string) {
+    this.hubConnection.invoke('JoinSpecificChatRoom', { username, chatRoom })
+      .catch(err => console.error('Error joining chat room:', err));
   }
 
-  sendMessage(message: string) {
-    if (this.hubConnection) {
-      this.hubConnection.invoke('SendMessage', message)
-        .catch(err => console.error('Error sending message:', err));
-    }
+  sendMessage(message: string, chatRoom: string) {
+    this.hubConnection.invoke('SendMessage', message)
+      .catch(err => console.error('Error sending message:', err));
   }
 }
