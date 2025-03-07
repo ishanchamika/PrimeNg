@@ -12,6 +12,7 @@ import { AuthService } from '../service/myServices/auth.services';
 
 import { Store } from '@ngrx/store';
 import { login } from '../../store/actions/auth.actions';
+import { CustomLoaderComponent } from '../../custom-loader/custom-loader.component';
 
 @Component({
     selector: 'app-login',
@@ -24,9 +25,11 @@ import { login } from '../../store/actions/auth.actions';
         PasswordModule,
         RippleModule,
         AppFloatingConfigurator,
-        ReactiveFormsModule // ✅ Add this to fix the formGroup issue
+        ReactiveFormsModule,
+        CustomLoaderComponent
     ],
     template: `
+        <app-custom-loader [isLoading]="isLoading"></app-custom-loader>
         <app-floating-configurator />
         <div class="bg-surface-50 dark:bg-surface-950 flex items-center justify-center min-h-screen min-w-[100vw] overflow-hidden">
             <div class="flex flex-col items-center justify-center">
