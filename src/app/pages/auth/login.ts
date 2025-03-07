@@ -67,7 +67,7 @@ import { login } from '../../store/actions/auth.actions';
                                 <div class="flex items-center justify-between mt-2 mb-8 gap-8">
                                     <span class="font-medium no-underline ml-2 text-right cursor-pointer text-primary">Forgot password?</span>
                                 </div>
-                                <p-button type="submit" label="Sign In" styleClass="w-full" [disabled]="loginForm.invalid"></p-button>
+                                <p-button type="submit" [label]="isLoading? 'Loading...':'Sign In'" styleClass="w-full" [disabled]="loginForm.invalid || isLoading"></p-button>
                                 <div *ngIf="errorMessage" class="text-red-500 mt-2">{{ errorMessage }}</div>
                             </form>
                         </div>
@@ -85,23 +85,25 @@ export class Login
     });
 
     errorMessage: string = '';
+    isLoading: boolean = false;
 
     constructor(private router: Router, private authService: AuthService, private store: Store) {}
 
     login() 
     {
-        if(this.loginForm.invalid) 
+        if(this.loginForm.invalid)
         {
             this.errorMessage = "Please fill in all required fields correctly.";
             return;
         }
-
+        this.isLoading = true;
         const email = this.loginForm.get('email')?.value ?? '';
         const password = this.loginForm.get('password')?.value ?? '';
 
         this.authService.login(email, password).subscribe({
             next: (response) => 
             {
+                this.isLoading = false;
                 console.log('hhhhhhhh',response);
                 try 
                 {
@@ -124,10 +126,14 @@ export class Login
             },
             error: (error) => 
             {
-                try {
+                this.isLoading = false;
+                try 
+                {
                     this.errorMessage = "Login error. Please try again";
                     console.error("Login error:", error);
-                } catch (err) {
+                } 
+                catch (err) 
+                {
                     console.error("Unexpected error in error handler:", err);
                 }
             }
