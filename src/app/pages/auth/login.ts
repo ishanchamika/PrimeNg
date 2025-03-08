@@ -103,7 +103,8 @@ export class Login
         const email = this.loginForm.get('email')?.value ?? '';
         const password = this.loginForm.get('password')?.value ?? '';
 
-        this.authService.login(email, password).subscribe({
+        this.authService.login(email, password).subscribe(
+        {
             next: (response) => 
             {
                 this.isLoading = false;
