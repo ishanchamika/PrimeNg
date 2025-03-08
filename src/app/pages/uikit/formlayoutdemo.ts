@@ -45,12 +45,7 @@ interface ChatMessage {
             <p>{{ email }}</p>
           </div>
           <div class="room-input">
-            <input 
-              type="text" 
-              [(ngModel)]="chatRoom" 
-              placeholder="Enter chat room name" 
-              (keyup.enter)="joinChat()"
-            />
+            <input type="text" [(ngModel)]="chatRoom" placeholder="Enter chat room name" (keyup.enter)="joinChat()"/>
           </div>
           <button class="join-button" (click)="joinChat()" [disabled]="!chatRoom.trim()">
             Join Room
@@ -360,7 +355,8 @@ interface ChatMessage {
     }
   `]
 })
-export class ChatComponent implements OnInit, OnDestroy {
+export class ChatComponent implements OnInit, OnDestroy 
+{
   message = '';
   messages: string[] = [];
   formattedMessages: ChatMessage[] = [];
@@ -371,11 +367,13 @@ export class ChatComponent implements OnInit, OnDestroy {
   activeUsers: number = 0;
   private subscription: Subscription = new Subscription();
 
-  constructor(private signalrService: SignalrService) {
+  constructor(private signalrService: SignalrService) 
+  {
     this.loadUserFromToken();
   }
 
-  ngOnInit() {
+  ngOnInit() 
+  {
     // Subscribe to messages from SignalR service
     this.subscription.add(
       this.signalrService.messages$.subscribe(msgs => {
@@ -399,7 +397,8 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
   }
 
-  loadUserFromToken() {
+  loadUserFromToken() 
+  {
     const token = localStorage.getItem('authToken');
 
     if (!token) {
@@ -415,8 +414,10 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
   }
 
-  joinChat() {
-    if (this.chatRoom.trim()) {
+  joinChat() 
+  {
+    if(this.chatRoom.trim()) 
+    {
       this.signalrService.joinChatRoom(this.username, this.chatRoom);
       this.joined = true;
       // Clear any previous messages when joining a new room
