@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common'; 
-import { FormGroup, Validators, FormControl, ReactiveFormsModule } from '@angular/forms'; // Import ReactiveFormsModule
+import { FormGroup, Validators, FormControl, AbstractControl, ReactiveFormsModule } from '@angular/forms'; // Import ReactiveFormsModule
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
@@ -55,23 +55,51 @@ import { CustomLoaderComponent } from '../../custom-loader/custom-loader.compone
                                 </g>
                             </svg>
                             <div class="text-surface-900 dark:text-surface-0 text-3xl font-medium mb-4">Welcome to PrimeLand!</div>
-                            <span class="text-muted-color font-medium">Register to Continue</span>
+                            <span class="text-muted-color font-medium">Sign Up to Continue</span>
                         </div>
 
                             <form [formGroup]="loginForm" (ngSubmit)="login()">
+
+                                <label for="name" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Full Name</label>
+                                <input pInputText id="name" type="text" placeholder="Enter your name" class="w-full md:w-[30rem] mb-8" formControlName="name" />
+                                <div *ngIf="loginForm.get('name')?.invalid && loginForm.get('name')?.touched" class="text-red-500 text-sm">
+                                    <span *ngIf="loginForm.get('name')?.errors?.['required']">Name is required</span>
+                                    <span *ngIf="loginForm.get('name')?.errors?.['minlength']">Name must be at least 2 characters long</span>
+                                    <span *ngIf="loginForm.get('name')?.errors?.['pattern']">Name cannot contain special characters or numbers</span>
+                                </div>
+
                                 <label for="email1" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Email</label>
                                 <input pInputText id="email1" type="text" placeholder="Email address" class="w-full md:w-[30rem] mb-8" formControlName="email" />
                                 <div *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" class="text-red-500 text-sm">Valid email is required</div>
 
                                 <label for="password1" class="block text-surface-900 dark:text-surface-0 font-medium text-xl mb-2">Password</label>
                                 <p-password id="password1" placeholder="Password" [toggleMask]="true" styleClass="mb-4" [fluid]="true" [feedback]="false" formControlName="password"></p-password>
-                                <div *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" class="text-red-500 text-sm">Password is required</div>
+                                <div *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" class="text-red-500 text-sm">
+                                    <span *ngIf="loginForm.get('password')?.errors?.['required']" class="w-full md:w-[30rem] mb-8">Password is required</span>
+                                    <span *ngIf="loginForm.get('password')?.errors?.['minlength']" class="w-full md:w-[30rem] mb-8">Password must be at least 6 characters long</span>
+                                    <span *ngIf="loginForm.get('password')?.errors?.['pattern']" class="w-full md:w-[30rem] mb-8">Password must include at least:
+                                        <ul class="list-disc ml-4">
+                                            <li>One uppercase letter (A-Z)</li>
+                                            <li>One lowercase letter (a-z)</li>
+                                            <li>One number (0-9)</li>
+                                            <li>One special character ($, #, !, %, *, ?, &)</li>
+                                        </ul>
+                                    </span>
+                                </div>
+                                
 
+                                <label for="password1" class="block text-surface-900 dark:text-surface-0 font-medium text-xl mb-2">Confirm Password</label>
+                                <p-password id="password2" placeholder="Confirm Password" [toggleMask]="true" styleClass="mb-4" [fluid]="true" [feedback]="false" formControlName="confirmPassword"></p-password>
+                                <div *ngIf="loginForm.get('confirmPassword')?.invalid && loginForm.get('confirmPassword')?.touched" class="text-red-500 text-sm">Confirm Password is required</div>
+                                <div *ngIf="loginForm.errors?.['passwordMismatch'] && loginForm.get('confirmPassword')?.touched" class="text-red-500 text-sm">Passwords do not match</div>
+                                
+                                
                                 <div class="flex items-center justify-between mt-2 mb-8 gap-8">
                                     <span class="font-medium no-underline ml-2 text-right cursor-pointer text-primary">Forgot password?</span>
                                     <span class="font-medium no-underline ml-2 text-right cursor-pointer text-primary">Go to Register</span>
                                 </div>
-                                <p-button type="submit" [label]="isLoading? 'Loading...':'Sign In'" styleClass="w-full" [disabled]="loginForm.invalid || isLoading"></p-button>
+                                
+                                <p-button type="submit" [label]="isLoading? 'Loading...':'Sign Up'" styleClass="w-full" [disabled]="loginForm.invalid || isLoading"></p-button>
                                 <div *ngIf="errorMessage" class="text-red-500 mt-2">{{ errorMessage }}</div>
                             </form>
                         </div>
@@ -84,9 +112,11 @@ import { CustomLoaderComponent } from '../../custom-loader/custom-loader.compone
 export class Register 
 {
     loginForm = new FormGroup({
+        name: new FormControl('', [Validators.required, Validators.minLength(2), Validators.pattern("^[a-zA-Z ]+$")]),
         email: new FormControl('', [Validators.required, Validators.email]),
-        password: new FormControl('', Validators.required)
-    });
+        password: new FormControl('', [Validators.required, Validators.minLength(6), Validators.pattern("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]+$")]),
+        confirmPassword: new FormControl('', [Validators.required])
+    }, { validators: passwordMatchValidator });
 
     errorMessage: string = '';
     isLoading: boolean = false;
@@ -145,4 +175,11 @@ export class Register
         });
         
     }
+}
+
+function passwordMatchValidator(form: AbstractControl) 
+{
+    const password = form.get('password')?.value;
+    const confirmPassword = form.get('confirmPassword')?.value;
+    return password === confirmPassword ? null : { passwordMismatch: true };
 }
