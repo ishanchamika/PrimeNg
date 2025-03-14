@@ -110,7 +110,7 @@ export class AppTopbar implements OnInit
     {
         console.log("Logging out...");
         localStorage.removeItem('authToken');
-        this.router.navigate(['/auth/login']);
+        this.router.navigate(['/']);
     }
 
     toggleDarkMode() 
