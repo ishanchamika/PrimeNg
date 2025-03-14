@@ -62,7 +62,7 @@ import { CustomLoaderComponent } from '../../custom-loader/custom-loader.compone
 
                                 <label for="name" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Full Name</label>
                                 <input pInputText id="name" type="text" placeholder="Enter your name" class="w-full md:w-[30rem] mb-8" formControlName="name" />
-                                <div *ngIf="loginForm.get('name')?.invalid && loginForm.get('name')?.touched" class="text-red-500 text-sm">
+                                <div *ngIf="loginForm.get('name')?.invalid && loginForm.get('name')?.touched" class="text-red-500 text-sm -mt-5">
                                     <span *ngIf="loginForm.get('name')?.errors?.['required']">Name is required</span>
                                     <span *ngIf="loginForm.get('name')?.errors?.['minlength']">Name must be at least 2 characters long</span>
                                     <span *ngIf="loginForm.get('name')?.errors?.['pattern']">Name cannot contain special characters or numbers</span>
@@ -70,11 +70,11 @@ import { CustomLoaderComponent } from '../../custom-loader/custom-loader.compone
 
                                 <label for="email1" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Email</label>
                                 <input pInputText id="email1" type="text" placeholder="Email address" class="w-full md:w-[30rem] mb-8" formControlName="email" />
-                                <div *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" class="text-red-500 text-sm">Valid email is required</div>
+                                <div *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" class="text-red-500 text-sm -mt-5">Valid email is required</div>
 
                                 <label for="password1" class="block text-surface-900 dark:text-surface-0 font-medium text-xl mb-2">Password</label>
                                 <p-password id="password1" placeholder="Password" [toggleMask]="true" styleClass="mb-4" [fluid]="true" [feedback]="false" formControlName="password"></p-password>
-                                <div *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" class="text-red-500 text-sm">
+                                <div *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" class="text-red-500 text-sm -mt-5">
                                     <span *ngIf="loginForm.get('password')?.errors?.['required']" class="w-full md:w-[30rem] mb-8">Password is required</span>
                                     <span *ngIf="loginForm.get('password')?.errors?.['minlength']" class="w-full md:w-[30rem] mb-8">Password must be at least 6 characters long</span>
                                     <span *ngIf="loginForm.get('password')?.errors?.['pattern']" class="w-full md:w-[30rem] mb-8">Password must include at least:
@@ -90,17 +90,26 @@ import { CustomLoaderComponent } from '../../custom-loader/custom-loader.compone
 
                                 <label for="password1" class="block text-surface-900 dark:text-surface-0 font-medium text-xl mb-2">Confirm Password</label>
                                 <p-password id="password2" placeholder="Confirm Password" [toggleMask]="true" styleClass="mb-4" [fluid]="true" [feedback]="false" formControlName="confirmPassword"></p-password>
-                                <div *ngIf="loginForm.get('confirmPassword')?.invalid && loginForm.get('confirmPassword')?.touched" class="text-red-500 text-sm">Confirm Password is required</div>
-                                <div *ngIf="loginForm.errors?.['passwordMismatch'] && loginForm.get('confirmPassword')?.touched" class="text-red-500 text-sm">Passwords do not match</div>
+                                <div *ngIf="loginForm.get('confirmPassword')?.invalid && loginForm.get('confirmPassword')?.touched" class="text-red-500 text-sm -mt-5">
+                                    <span *ngIf="loginForm.get('confirmPassword')?.errors?.['required']">Confirm Password is required</span>
+                                </div>
+                                <div *ngIf="loginForm.errors?.['passwordMismatch'] && loginForm.get('confirmPassword')?.touched" class="text-red-500 text-sm -mt-5">
+                                    Passwords do not match
+                                </div>
                                 
                                 
                                 <div class="flex items-center justify-between mt-2 mb-8 gap-8">
-                                    <span class="font-medium no-underline ml-2 text-right cursor-pointer text-primary">Forgot password?</span>
-                                    <span class="font-medium no-underline ml-2 text-right cursor-pointer text-primary">Go to Register</span>
+                                    <span (click)="navigateTo('forgot-password')" class="font-medium no-underline ml-2 text-right cursor-pointer text-primary">
+                                        Forgot password?
+                                    </span>
+                                    <span (click)="navigateTo('auth/login')" class="font-medium no-underline ml-2 text-right cursor-pointer text-primary">
+                                        Go to Login
+                                    </span>
                                 </div>
+
                                 
                                 <p-button type="submit" [label]="isLoading? 'Loading...':'Sign Up'" styleClass="w-full" [disabled]="loginForm.invalid || isLoading"></p-button>
-                                <div *ngIf="errorMessage" class="text-red-500 mt-2">{{ errorMessage }}</div>
+                                <div *ngIf="errorMessage" class="text-red-500 -mt-5">{{ errorMessage }}</div>
                             </form>
                         </div>
                     </div>
@@ -120,8 +129,13 @@ export class Register
 
     errorMessage: string = '';
     isLoading: boolean = false;
+    isLoginClicked: boolean = false;
 
     constructor(private router: Router, private authService: AuthService, private store: Store) {}
+    navigateTo(path: string) 
+    {
+        this.router.navigate([`/${path}`]);
+    }
 
     login() 
     {
@@ -131,10 +145,11 @@ export class Register
             return;
         }
         this.isLoading = true;
+        const name  = this.loginForm.get('name')?.value ?? '';
         const email = this.loginForm.get('email')?.value ?? '';
         const password = this.loginForm.get('password')?.value ?? '';
 
-        this.authService.login(email, password).subscribe(
+        this.authService.signup(name, email, password).subscribe(
         {
             next: (response) => 
             {
@@ -148,10 +163,10 @@ export class Register
                     }
                     else
                     {
-                        console.log("Login successful", response);
+                        console.log("registration successful", response);
 
-                        localStorage.setItem('authToken', response.token);
-                        this.router.navigate(['/dashboard']);
+                        // localStorage.setItem('authToken', response.token);
+                        this.router.navigate(['/auth/login']);
                     }
                 } 
                 catch(err) 
