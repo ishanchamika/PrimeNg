@@ -68,7 +68,8 @@ import { CustomLoaderComponent } from '../../custom-loader/custom-loader.compone
                                 <div *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" class="text-red-500 text-sm">Password is required</div>
 
                                 <div class="flex items-center justify-between mt-2 mb-8 gap-8">
-                                    <span class="font-medium no-underline ml-2 text-right cursor-pointer text-primary">Forgot password?</span>
+                                    <span (click)="navigateTo('auth/register')" class="font-medium no-underline ml-2 text-right cursor-pointer text-primary">Forgot password?</span>
+                                    <span (click)="navigateTo('auth/register')" class="font-medium no-underline ml-2 text-right cursor-pointer text-primary">Go to Register</span>
                                 </div>
                                 <p-button type="submit" [label]="isLoading? 'Loading...':'Sign In'" styleClass="w-full" [disabled]="loginForm.invalid || isLoading"></p-button>
                                 <div *ngIf="errorMessage" class="text-red-500 mt-2">{{ errorMessage }}</div>
@@ -91,6 +92,11 @@ export class Login
     isLoading: boolean = false;
 
     constructor(private router: Router, private authService: AuthService, private store: Store) {}
+
+    navigateTo(path: string) 
+    {
+        this.router.navigate([`/${path}`]);
+    }
 
     login() 
     {
