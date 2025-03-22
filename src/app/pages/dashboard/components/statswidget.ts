@@ -22,6 +22,7 @@ import { ButtonGroupModule } from 'primeng/buttongroup';
 import { SplitButtonModule } from 'primeng/splitbutton';
 
 import { TaskService } from '../../service/myServices/tasks.services';
+import { IndexeddbService } from '../../../indexDB/indexeddb.service';
 
 
 interface Task {
@@ -166,7 +167,7 @@ export class StatsWidget implements OnInit
         taskDeadline: ''
     };
 
-    constructor(private attendanceService: AttendanceService, private router: Router, private taskService: TaskService)
+    constructor(private attendanceService: AttendanceService, private router: Router, private taskService: TaskService, private indexedDBService: IndexeddbService)
     {
         const token = localStorage.getItem('authToken');
         if(!token) 
@@ -179,6 +180,11 @@ export class StatsWidget implements OnInit
             const decoded: any = jwtDecode(token);
             // console.log("UserId:", decoded.UserId);
             // console.log("Email:", decoded.Email);
+            // const loggedUser = {name: decoded.UserId, email: decoded.Email, stepData: 'Step 1 completed'};
+            // this.indexedDBService.addCustomerData(loggedUser).then(()=>
+            // {
+            //     console.log('Data saved in IndexedDB');
+            // });
         }
         catch(error)
         {
@@ -188,6 +194,11 @@ export class StatsWidget implements OnInit
 
     ngOnInit() 
     {
+        this.indexedDBService.getAllCustomerData().then(data => 
+        {
+            console.log('Retrieved IndexedDB Data:', data);
+        });
+
         this.getAllTasks();
         this.attendanceData$ = this.getAttendanceData();
         this.attendanceSubscription = this.attendanceData$.subscribe(data => 
