@@ -10,6 +10,7 @@ import { Menu } from 'primeng/menu';
 import { ToastModule } from 'primeng/toast';
 import { ButtonModule } from 'primeng/button';
 import { Router } from '@angular/router';
+import { IndexeddbService } from '../../indexDB/indexeddb.service';
 
 
 @Component({
@@ -83,7 +84,7 @@ import { Router } from '@angular/router';
 })
 export class AppTopbar implements OnInit
 {
-    constructor(public layoutService: LayoutService, private router: Router) {}
+    constructor(public layoutService: LayoutService, private router: Router, private indexedDBService: IndexeddbService) {}
 
     items: MenuItem[] | undefined;
     ngOnInit(): void 
@@ -106,10 +107,15 @@ export class AppTopbar implements OnInit
         ];
     }
 
-    logout() 
+    async logout() 
     {
         console.log("Logging out...");
         localStorage.removeItem('authToken');
+        await this.indexedDBService.clearAllData();
+        // await this.indexedDBService.deleteDatabase();
+
+        //Reinitialize IndexedDB (so it starts fresh)
+        await this.indexedDBService.initDB();
         this.router.navigate(['/']);
     }
 
