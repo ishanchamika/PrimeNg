@@ -93,7 +93,7 @@ export class Login
     errorMessage: string = '';
     isLoading: boolean = false;
 
-    constructor(private router: Router, private authService: AuthService, private store: Store,private indexedDBService: IndexeddbService) {}
+    constructor(private router: Router, private authService: AuthService, private store: Store, private indexedDBService: IndexeddbService) {}
 
     navigateTo(path: string) 
     {
@@ -133,6 +133,7 @@ export class Login
                         // console.log("UserId:", decoded.UserId);
                         // console.log("Email:", decoded.Email);
                         const loggedUser = {name: decoded.UserId, email: decoded.Email, stepData: 'Step 1 completed'};
+                        // this.indexedDBService.initDB();
                         this.indexedDBService.addCustomerData(loggedUser).then(()=>
                         {
                             console.log('Data saved in IndexedDB');
