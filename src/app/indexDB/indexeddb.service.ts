@@ -9,6 +9,17 @@ interface CustomerData {
   stepData: string; // Store JSON string or object
 }
 
+interface Task {
+  id: number;
+  userId: string;
+  taskName: string;
+  taskDescription: string;
+  taskStatus: 'Pending' | 'In Progress' | 'Completed';
+  taskDeadline: string;
+}
+
+
+
 @Injectable({
   providedIn: 'root'
 })
@@ -24,7 +35,7 @@ export class IndexeddbService
     //_____________Initialize IndexedDB______________
     public async initDB()
     {
-      return openDB('chatRegistrationDB', 1, 
+      return openDB('chatRegistrationDB', 2, 
       {
         upgrade(db) 
         {
@@ -32,9 +43,15 @@ export class IndexeddbService
           {
             db.createObjectStore('customers', { keyPath: 'id', autoIncrement: true });
           }
+          if(!db.objectStoreNames.contains('tasks')) 
+          {
+            db.createObjectStore('tasks', { keyPath: 'id', autoIncrement: true });
+          }
         }
       });
     }
+
+//___________________________________________________Users handle_____________________________________________________________
 
   //_______________Add data to IndexedDB________________
   async addCustomerData(data: CustomerData) {
@@ -53,6 +70,46 @@ export class IndexeddbService
     const db = await this.dbPromise;
     await db.transaction('customers', 'readwrite').objectStore('customers').clear();
   }
+
+
+
+
+
+//___________________________________________________Tasks handle_____________________________________________________________
+
+//_______________Add tasks________________
+async addTasks(tasks: Task[]) {
+  const db = await this.dbPromise;
+  const tx = db.transaction('tasks', 'readwrite');
+  const store = tx.objectStore('tasks');
+
+  await Promise.all(tasks.map(task => store.put(task))); // ✅ Runs all promises in parallel
+  await tx.done;
+  console.log('Tasks stored in IndexedDB');
+}
+
+//_______________Get all tasks________________
+async getAllTasks(): Promise<Task[]> {
+    const db = await this.dbPromise;
+    return db.transaction('tasks').objectStore('tasks').getAll();
+}
+
+//_______________Delete tasks________________
+async clearTasks() {
+    const db = await this.dbPromise;
+    await db.transaction('tasks', 'readwrite').objectStore('tasks').clear();
+}
+
+
+
+
+
+
+
+
+
+
+
 
   //_______________Delete all stored data from all object stores_______________
   async clearAllData() {
@@ -73,5 +130,5 @@ export class IndexeddbService
     const dbName = 'chatRegistrationDB';
     indexedDB.deleteDatabase(dbName);
     console.log(`Database ${dbName} deleted`);
-}
+  }
 }
