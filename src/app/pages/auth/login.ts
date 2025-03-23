@@ -134,11 +134,12 @@ export class Login
                         // console.log("Email:", decoded.Email);
                         const loggedUser = {name: decoded.UserId, email: decoded.Email, stepData: 'Step 1 completed'};
                         // this.indexedDBService.initDB();
+                        this.indexedDBService.clearAllCustomerData();
                         this.indexedDBService.addCustomerData(loggedUser).then(()=>
                         {
                             console.log('Data saved in IndexedDB');
                         });
-
+                        // this.indexedDBService.clearAllData();
                         this.router.navigate(['/dashboard']);
                     }
                 } 
