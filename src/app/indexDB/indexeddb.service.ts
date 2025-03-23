@@ -22,7 +22,7 @@ export class IndexeddbService
   }
 
     //_____________Initialize IndexedDB______________
-    private async initDB() 
+    public async initDB()
     {
       return openDB('chatRegistrationDB', 1, 
       {
@@ -43,7 +43,7 @@ export class IndexeddbService
   }
 
   //_______________Get all stored data__________________
-   async getAllCustomerData(): Promise<CustomerData[]> {
+  async getAllCustomerData(): Promise<CustomerData[]> {
     const db = await this.dbPromise;
     return db.transaction('customers').objectStore('customers').getAll();
   }
@@ -53,4 +53,25 @@ export class IndexeddbService
     const db = await this.dbPromise;
     await db.transaction('customers', 'readwrite').objectStore('customers').clear();
   }
+
+  //_______________Delete all stored data from all object stores_______________
+  async clearAllData() {
+    const db = await this.dbPromise;
+    const transaction = db.transaction(db.objectStoreNames, 'readwrite'); // Get all stores
+    for(const storeName of db.objectStoreNames) 
+    {
+        transaction.objectStore(storeName).clear(); // Clear each store
+    }
+    await transaction.done; // Wait until the transaction is completed
+    console.log("All IndexedDB data cleared!");
+  }
+
+
+  //_______________Delete the database____________________
+  async deleteDatabase() {
+    // Close the database before deleting
+    const dbName = 'chatRegistrationDB';
+    indexedDB.deleteDatabase(dbName);
+    console.log(`Database ${dbName} deleted`);
+}
 }
