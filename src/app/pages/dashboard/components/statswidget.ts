@@ -201,7 +201,7 @@ export class StatsWidget implements OnInit
 
         this.getAllTasks();
         this.attendanceData$ = this.getAttendanceData();
-        this.attendanceSubscription = this.attendanceData$.subscribe(data => 
+        this.attendanceSubscription = this.attendanceData$.subscribe(data =>
         {
             if(Array.isArray(data.data)) 
             {
@@ -290,10 +290,13 @@ export class StatsWidget implements OnInit
             const decoded: { UserId: string } = jwtDecode(token);
             this.getAllTasks$ = this.taskService.getTaskByUserId(decoded.UserId);
             this.getAllTasks$.subscribe(
-                (data)=>
+                async (data)=>
                 {
                     if(data.status && Array.isArray(data.tasks)) 
                     {
+                        await this.indexedDBService.clearTasks();
+                        await this.indexedDBService.addTasks(data.tasks);
+
                         this.tasks = data.tasks.filter((task: Task) => task.taskStatus === 'Pending');
                         this.tasksDoing = data.tasks.filter((task: Task) => task.taskStatus === 'In Progress');
                         this.tasksDone = data.tasks.filter((task: Task) => task.taskStatus === 'Completed');
