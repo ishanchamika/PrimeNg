@@ -6,6 +6,7 @@ import * as signalR from '@microsoft/signalr';
 import { BehaviorSubject, Subscription } from 'rxjs';
 import { SignalrService } from '../service/myServices/signalr.services';
 import { jwtDecode } from "jwt-decode";
+import { AuthService } from '../service/myServices/auth.services';
 
 interface ChatMessage {
   sender: string;
@@ -365,15 +366,33 @@ export class ChatComponent implements OnInit, OnDestroy
   joined = false;
   email: string = '';
   activeUsers: number = 0;
+  allUsers: string[] = [];
   private subscription: Subscription = new Subscription();
 
-  constructor(private signalrService: SignalrService) 
+  constructor(private signalrService: SignalrService, private authService: AuthService) 
   {
     this.loadUserFromToken();
   }
 
   ngOnInit() 
   {
+
+    this.authService.getAllUsers().subscribe(
+      (data) =>
+      {
+        if(Array.isArray(data)) 
+        {
+          this.allUsers = data;
+        } 
+        else 
+        {
+          console.error('Unexpected data format:', data);
+        }
+      },
+      (error) => {
+        console.error('Error fetching users:', error);
+      }
+    );
     // Subscribe to messages from SignalR service
     this.subscription.add(
       this.signalrService.messages$.subscribe(msgs => {
