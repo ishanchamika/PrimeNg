@@ -1,0 +1,20 @@
+<div class="chat-container">
+    <!-- Display chat messages -->
+    <div *ngFor="let chat of chatHistory" class="chat-message" [ngClass]="chat.type">
+      {{ chat.message }}
+    </div>
+  
+    <!-- Display options for selection -->
+    <div class="options" *ngIf="currentQuestion?.options?.length">
+        <button *ngFor="let option of currentQuestion?.options || []" (click)="selectOption(option)">
+            {{ option.text }}
+        </button>          
+    </div>
+  
+    <!-- Input field for user responses -->
+    <div *ngIf="currentQuestion?.expectsInput" class="input-container">
+      <input type="text" [(ngModel)]="userInput" placeholder="Type your answer..." />
+      <button (click)="sendInput()">Send</button>
+    </div>
+  </div>
+  
