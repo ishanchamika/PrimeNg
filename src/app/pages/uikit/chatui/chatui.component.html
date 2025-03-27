@@ -1,20 +1,39 @@
 <div class="chat-container">
-    <!-- Display chat messages -->
+    <!-- Chat history display -->
     <div *ngFor="let chat of chatHistory" class="chat-message" [ngClass]="chat.type">
       {{ chat.message }}
     </div>
-  
-    <!-- Display options for selection -->
+
+    <!-- Options for selection -->
     <div class="options" *ngIf="currentQuestion?.options?.length">
         <button *ngFor="let option of currentQuestion?.options || []" (click)="selectOption(option)">
             {{ option.text }}
         </button>          
     </div>
-  
-    <!-- Input field for user responses -->
+
+    <!-- Input fields for user responses -->
     <div *ngIf="currentQuestion?.expectsInput" class="input-container">
-      <input type="text" [(ngModel)]="userInput" placeholder="Type your answer..." />
-      <button (click)="sendInput()">Send</button>
+        
+        <!-- Special case for full address (Permanent & Mailing) -->
+        <ng-container *ngIf="currentQuestionKey === 'individual_address'; else normalInput">
+            <p>Permanent Address</p>
+            <input type="text" [(ngModel)]="permanentLine1" placeholder="Address line 1" />
+            <input type="text" [(ngModel)]="permanentLine2" placeholder="Address line 2" />
+            <input type="text" [(ngModel)]="permanentLine3" placeholder="Address line 3" />
+
+            <p>Mailing Address</p>
+            <input type="text" [(ngModel)]="mailingLine1" placeholder="Address line 1" />
+            <input type="text" [(ngModel)]="mailingLine2" placeholder="Address line 2" />
+            <input type="text" [(ngModel)]="mailingLine3" placeholder="Address line 3" />
+
+            <button (click)="sendAddressInput()">Send</button>
+        </ng-container>
+
+        <!-- Default single input for other questions -->
+        <ng-template #normalInput>
+            <input type="text" [(ngModel)]="userInput" placeholder="Type your answer..." />
+            <button (click)="sendInput()">Send</button>
+        </ng-template>
+
     </div>
-  </div>
-  
+</div>
