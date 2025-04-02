@@ -15,6 +15,8 @@ import { OverlayDemo } from './overlaydemo';
 import { TreeDemo } from './treedemo';
 import { MenuDemo } from './menudemo';
 import { ChatuiComponent } from './chatui/chatui.component';
+import { OnchangeComponent } from './onchange/onchange.component';
+import { ParentComponent } from './parent/parent.component';
 
 export default [
     { path: 'button', data: { breadcrumb: 'Button' }, component: ButtonDemo },
@@ -33,5 +35,6 @@ export default [
     { path: 'tree', data: { breadcrumb: 'Tree' }, component: TreeDemo },
     { path: 'menu', data: { breadcrumb: 'Menu' }, component: MenuDemo },
     { path: 'chatui', data: { breadcrumb: 'Chatui'}, component: ChatuiComponent},
+    { path: 'test', data: { breadcrumb: 'test'}, component: ParentComponent},
     { path: '**', redirectTo: '/notfound' }
 ] as Routes;
