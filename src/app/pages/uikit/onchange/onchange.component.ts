@@ -1,4 +1,4 @@
-import { Component, OnInit, OnChanges, SimpleChanges, Input } from '@angular/core';
+import { Component, OnInit, OnChanges, SimpleChanges, Input ,OnDestroy} from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -12,16 +12,26 @@ export class OnchangeComponent implements OnInit, OnChanges
 {
   @Input() inputValue: string = '';
 
-  constructor() { }
+  constructor() 
+  {
+    console.log('Constructor.......');
+  }
 
-  ngOnInit(): void {
+  ngOnInit(): void 
+  {
     console.log('Child Component Initialized');
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['inputValue']) {
+  ngOnChanges(changes: SimpleChanges): void 
+  {
+    if(changes['inputValue']) 
+    {
       console.log('Previous Value:', changes['inputValue'].previousValue);
       console.log('Current Value:', changes['inputValue'].currentValue);
     }
+  }
+
+  ngOnDestroy(): void {
+    console.log("ngOnDestroy - Cleanup before component is removed");
   }
 }
