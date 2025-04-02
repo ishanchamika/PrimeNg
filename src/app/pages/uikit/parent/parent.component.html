@@ -1,0 +1,9 @@
+<div>
+    <h2>Parent Component</h2>
+    <label for="inputField">Enter Text:</label>
+    <input type="text" id="inputField" [(ngModel)]="parentValue" />
+  
+    <!-- Child component receiving inputValue -->
+    <app-onchange [inputValue]="parentValue"></app-onchange>
+  </div>
+  
